@@ -1,0 +1,45 @@
+{
+  "model_family": "XGBoost + LightGBM + SHAP",
+  "stage1_features": [
+    "nirf_rank",
+    "nirf_score",
+    "institute_tier",
+    "course",
+    "placement_cell_index",
+    "sector_demand_index",
+    "historical_course_placement_rate"
+  ],
+  "stage2_features": [
+    "nirf_rank",
+    "nirf_score",
+    "institute_tier",
+    "course",
+    "placement_cell_index",
+    "sector_demand_index",
+    "historical_course_placement_rate",
+    "normalized_cgpa_10",
+    "backlogs",
+    "internships",
+    "certifications",
+    "job_portal_activity",
+    "interview_count",
+    "loan_amount_lakh",
+    "moratorium_days_left"
+  ],
+  "categorical_features": [
+    "institute_tier",
+    "course"
+  ],
+  "excluded_features": [
+    "applicant_origin",
+    "gpa_scale",
+    "raw_gpa"
+  ],
+  "gpa_feature_used": "normalized_cgpa_10",
+  "targets": [
+    "placed_3m",
+    "placed_6m",
+    "placed_12m"
+  ],
+  "salary_target": "actual_salary_lpa"
+}

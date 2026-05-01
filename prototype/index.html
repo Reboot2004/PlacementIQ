@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PlacementIQ Prototype</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <div class="brand-block">
+          <div class="brand-mark">PIQ</div>
+          <div>
+            <p class="eyebrow">Poonawalla Fincorp</p>
+            <h1>PlacementIQ</h1>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-section="portfolio" type="button">
+            <span class="icon">▦</span>
+            Portfolio
+          </button>
+          <button class="nav-item" data-section="score-lab" type="button">
+            <span class="icon">◇</span>
+            Score Lab
+          </button>
+          <button class="nav-item" data-section="model" type="button">
+            <span class="icon">≋</span>
+            Model
+          </button>
+        </nav>
+
+        <div class="sidebar-note">
+          <p class="note-label">Current Monitoring Window</p>
+          <strong>Moratorium exits in next 90 days</strong>
+          <span>312 borrowers need proactive review</span>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <section class="topbar" aria-label="Dashboard controls">
+          <div>
+            <p class="eyebrow">AI-powered placement risk modelling</p>
+            <h2>Lender Risk Console</h2>
+          </div>
+          <div class="topbar-actions">
+            <label class="search-box">
+              <span>Search</span>
+              <input id="searchInput" type="search" placeholder="Borrower, institute, city" />
+            </label>
+            <label class="select-box">
+              <span>Risk</span>
+              <select id="riskFilter">
+                <option value="all">All</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="screen active" id="portfolio">
+          <div class="metric-grid" aria-label="Portfolio summary">
+            <article class="metric">
+              <span>Total Active Loans</span>
+              <strong id="totalLoans">2,847</strong>
+              <small>Under monitoring</small>
+            </article>
+            <article class="metric urgent">
+              <span>High Risk</span>
+              <strong id="highRiskCount">312</strong>
+              <small>Moratorium ending &lt;90 days</small>
+            </article>
+            <article class="metric">
+              <span>Average PRS</span>
+              <strong id="avgPrs">67</strong>
+              <small>Moderate placement confidence</small>
+            </article>
+            <article class="metric">
+              <span>Expected Exposure</span>
+              <strong id="exposure">₹41.8Cr</strong>
+              <small>Loans requiring action</small>
+            </article>
+          </div>
+
+          <div class="workspace-grid">
+            <section class="panel table-panel" aria-labelledby="portfolioTitle">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">NBFC education loan book</p>
+                  <h3 id="portfolioTitle">Borrower Monitoring Queue</h3>
+                </div>
+                <button id="sortButton" class="icon-button" type="button" title="Sort by PRS">↕</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Borrower</th>
+                      <th>Course</th>
+                      <th>Institute</th>
+                      <th>Moratorium</th>
+                      <th>PRS</th>
+                      <th>Risk</th>
+                    </tr>
+                  </thead>
+                  <tbody id="borrowerTable"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="panel detail-panel" aria-labelledby="detailTitle">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Individual borrower card</p>
+                  <h3 id="detailTitle">Selected Borrower</h3>
+                </div>
+                <span id="riskPill" class="risk-pill">High</span>
+              </div>
+
+              <div class="borrower-identity">
+                <div>
+                  <h4 id="borrowerName">Ravi K.</h4>
+                  <p id="borrowerMeta">B.Tech CSE, Hyderabad</p>
+                </div>
+                <div class="loan-chip" id="loanChip">₹18L loan</div>
+              </div>
+
+              <div class="score-row">
+                <div class="score-dial" aria-label="Placement Risk Score">
+                  <span id="scoreValue">42</span>
+                  <small>/ 100</small>
+                </div>
+                <div class="score-context">
+                  <div class="risk-scale">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                  <div class="scale-labels">
+                    <span>Low</span>
+                    <span>Medium</span>
+                    <span>High</span>
+                  </div>
+                  <p id="scoreNarrative">Weak placement signal with low internship exposure.</p>
+                </div>
+              </div>
+
+              <div class="probability-grid">
+                <div>
+                  <span>3-month placement</span>
+                  <strong id="prob3">18%</strong>
+                </div>
+                <div>
+                  <span>6-month placement</span>
+                  <strong id="prob6">41%</strong>
+                </div>
+                <div>
+                  <span>12-month placement</span>
+                  <strong id="prob12">67%</strong>
+                </div>
+                <div>
+                  <span>Salary band</span>
+                  <strong id="salaryBand">₹3-5 LPA</strong>
+                </div>
+              </div>
+
+              <div class="driver-section">
+                <div class="section-title">
+                  <h4>Top SHAP-style Drivers</h4>
+                  <span>Impact on PRS</span>
+                </div>
+                <div id="driverList" class="driver-list"></div>
+              </div>
+
+              <div class="recommendation">
+                <span>Recommended action</span>
+                <strong id="recommendationText">Skill-up referral + EMI restructure review</strong>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="screen" id="score-lab">
+          <div class="split-layout">
+            <section class="panel" aria-labelledby="scoreLabTitle">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">POST /score simulation</p>
+                  <h3 id="scoreLabTitle">Borrower Score Lab</h3>
+                </div>
+                <button id="resetForm" class="text-button" type="button">Reset</button>
+              </div>
+
+              <form id="scoreForm" class="score-form">
+                <label>
+                  CGPA
+                  <input name="cgpa" type="range" min="5" max="10" step="0.1" value="7.1" />
+                  <output id="cgpaOut">7.1</output>
+                </label>
+                <label>
+                  Internships
+                  <input name="internships" type="number" min="0" max="5" value="0" />
+                </label>
+                <label>
+                  Certifications
+                  <input name="certifications" type="number" min="0" max="8" value="0" />
+                </label>
+                <label>
+                  Institute tier
+                  <select name="tier">
+                    <option value="1">Tier 1</option>
+                    <option value="2" selected>Tier 2</option>
+                    <option value="3">Tier 3</option>
+                  </select>
+                </label>
+                <label>
+                  Course
+                  <select name="course">
+                    <option value="cse" selected>B.Tech CSE</option>
+                    <option value="mba">MBA</option>
+                    <option value="core">Core Engineering</option>
+                    <option value="arts">Arts / Commerce</option>
+                  </select>
+                </label>
+                <label>
+                  Sector demand
+                  <select name="demand">
+                    <option value="high">High</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </label>
+                <label>
+                  Placement cell activity
+                  <select name="placementCell">
+                    <option value="strong">Strong</option>
+                    <option value="average" selected>Average</option>
+                    <option value="weak">Weak</option>
+                  </select>
+                </label>
+                <label>
+                  Moratorium ends in
+                  <input name="daysLeft" type="number" min="15" max="365" value="75" />
+                </label>
+              </form>
+            </section>
+
+            <section class="panel live-score" aria-labelledby="liveScoreTitle">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Live model output</p>
+                  <h3 id="liveScoreTitle">Placement Risk Result</h3>
+                </div>
+                <span id="labRiskPill" class="risk-pill">High</span>
+              </div>
+              <div class="score-dial large">
+                <span id="labScore">44</span>
+                <small>/ 100</small>
+              </div>
+              <div class="probability-grid">
+                <div>
+                  <span>3-month</span>
+                  <strong id="labProb3">20%</strong>
+                </div>
+                <div>
+                  <span>6-month</span>
+                  <strong id="labProb6">43%</strong>
+                </div>
+                <div>
+                  <span>12-month</span>
+                  <strong id="labProb12">68%</strong>
+                </div>
+                <div>
+                  <span>Salary</span>
+                  <strong id="labSalary">₹3-5 LPA</strong>
+                </div>
+              </div>
+              <div id="labDrivers" class="driver-list"></div>
+              <pre id="apiPreview" class="api-preview"></pre>
+            </section>
+          </div>
+        </section>
+
+        <section class="screen" id="model">
+          <div class="model-grid">
+            <section class="panel">
+              <p class="eyebrow">Data architecture</p>
+              <h3>Five Signal Layers</h3>
+              <div class="layer-list">
+                <div><strong>01</strong><span>Student academic profile</span></div>
+                <div><strong>02</strong><span>Institute and program intelligence</span></div>
+                <div><strong>03</strong><span>Industry and labor market signals</span></div>
+                <div><strong>04</strong><span>Real-time employability signals</span></div>
+                <div><strong>05</strong><span>Historical repayment outcomes</span></div>
+              </div>
+            </section>
+            <section class="panel">
+              <p class="eyebrow">Model architecture</p>
+              <h3>Two-stage Explainable ML Pipeline</h3>
+              <div class="pipeline">
+                <div>Raw features</div>
+                <div>Feature engineering</div>
+                <div>XGBoost institute prior</div>
+                <div>LightGBM student adjustment</div>
+                <div>SHAP explainer</div>
+                <div>PRS + action</div>
+              </div>
+            </section>
+            <section class="panel compliance-panel">
+              <p class="eyebrow">Responsible AI</p>
+              <h3>Decision Support Controls</h3>
+              <ul>
+                <li>No caste, religion, gender, or direct geography features.</li>
+                <li>Every score includes ranked drivers and confidence band.</li>
+                <li>High-risk alerts trigger support actions, not automated rejections.</li>
+                <li>Portfolio manager remains the final decision maker.</li>
+              </ul>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

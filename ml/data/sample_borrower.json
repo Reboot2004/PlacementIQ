@@ -1,0 +1,18 @@
+{
+  "borrower_id": "B-DEMO-001",
+  "nirf_rank": 57,
+  "nirf_score": 51.52,
+  "institute_tier": 2,
+  "course": "btech_cse",
+  "normalized_cgpa_10": 7.1,
+  "backlogs": 1,
+  "internships": 0,
+  "certifications": 0,
+  "job_portal_activity": 0.34,
+  "interview_count": 0,
+  "placement_cell_index": 0.55,
+  "sector_demand_index": 0.52,
+  "historical_course_placement_rate": 0.62,
+  "loan_amount_lakh": 18.0,
+  "moratorium_days_left": 75
+}

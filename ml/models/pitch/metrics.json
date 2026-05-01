@@ -1,0 +1,56 @@
+{
+  "architecture": "Stage 1 XGBoost institute-course prior + Stage 2 LightGBM student adjustment + SHAP",
+  "rows": 25000,
+  "train_rows": 20000,
+  "test_rows": 5000,
+  "targets": {
+    "placed_3m": {
+      "stage1_xgboost": {
+        "auc": 0.7778,
+        "accuracy": 0.726,
+        "positive_rate": 0.6532
+      },
+      "stage2_lightgbm": {
+        "auc": 0.8122,
+        "accuracy": 0.7462,
+        "positive_rate": 0.6532
+      },
+      "shap_reference_rows": 1000,
+      "shap_output_type": "ndarray"
+    },
+    "placed_6m": {
+      "stage1_xgboost": {
+        "auc": 0.8285,
+        "accuracy": 0.8732,
+        "positive_rate": 0.8676
+      },
+      "stage2_lightgbm": {
+        "auc": 0.8676,
+        "accuracy": 0.8812,
+        "positive_rate": 0.8676
+      },
+      "shap_reference_rows": 1000,
+      "shap_output_type": "ndarray"
+    },
+    "placed_12m": {
+      "stage1_xgboost": {
+        "auc": 0.8735,
+        "accuracy": 0.9542,
+        "positive_rate": 0.9542
+      },
+      "stage2_lightgbm": {
+        "auc": 0.8967,
+        "accuracy": 0.9542,
+        "positive_rate": 0.9542
+      },
+      "shap_reference_rows": 1000,
+      "shap_output_type": "ndarray"
+    }
+  },
+  "salary_model": {
+    "model": "LightGBMRegressor",
+    "mae_lpa": 0.9625,
+    "rmse_lpa": 1.2041,
+    "test_rows": 4771
+  }
+}
