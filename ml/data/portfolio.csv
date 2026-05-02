@@ -1,0 +1,11 @@
+borrower_id,institute_name,city,nirf_rank,nirf_score,institute_tier,course,normalized_cgpa_10,backlogs,internships,certifications,job_portal_activity,interview_count,placement_cell_index,sector_demand_index,historical_course_placement_rate,loan_amount_lakh,moratorium_days_left
+B-DEMO-001,Tier-2 Institute,Hyderabad,57,51.52,2,btech_cse,7.1,1,0,0,0.34,0,0.55,0.52,0.62,18.0,75
+B-DEMO-002,Tier-1 Business School,Pune,15,65.40,1,mba,8.4,0,2,3,0.72,5,0.85,0.80,0.92,22.0,118
+B-DEMO-003,Tier-3 College,Indore,180,45.20,3,core_engineering,6.6,2,0,1,0.15,0,0.40,0.45,0.55,12.0,41
+B-DEMO-004,NIT Program,Bengaluru,8,71.55,1,btech_cse,8.1,0,2,2,0.68,4,0.75,0.80,0.96,16.5,142
+B-DEMO-005,Tier-2 University,Jaipur,95,54.30,2,commerce_arts,7.3,0,1,0,0.42,1,0.60,0.50,0.70,9.0,86
+B-DEMO-006,Tier-2 Business School,Chennai,45,58.90,2,mba,7.7,1,1,2,0.55,2,0.70,0.65,0.80,20.0,57
+B-DEMO-007,IIT Delhi,Delhi,3,78.20,1,btech_cse,8.9,0,3,4,0.85,6,0.92,0.95,0.98,24.0,165
+B-DEMO-008,Tier-3 Institute,Mumbai,220,42.10,3,core_engineering,5.8,3,0,0,0.08,0,0.35,0.40,0.50,8.5,28
+B-DEMO-009,BITS Pilani,Hyderabad,25,62.75,1,btech_cse,8.6,0,2,3,0.78,5,0.88,0.90,0.95,19.0,95
+B-DEMO-010,Tier-2 University,Kolkata,110,52.40,2,commerce_arts,6.9,1,0,1,0.25,0,0.50,0.48,0.65,10.5,73
