@@ -177,6 +177,39 @@ class BorrowerUpdateRequest(BaseModel):
             raise ValueError(f"course must be one of {sorted(allowed)}")
         return value
 
+
+class EnrollmentRequest(BaseModel):
+    name: str = Field(min_length=1)
+    city: str = Field(min_length=1)
+    course: str
+    institute: str = Field(min_length=1)
+    gpa: float = Field(ge=0, le=10)
+    backlogs: int = Field(ge=0, le=30)
+    internships: int = Field(ge=0, le=10)
+    interview_count: int = Field(ge=0, le=50)
+    certifications: int = Field(ge=0, le=20)
+    loan_amount_lakh: float = Field(gt=0, le=100)
+    moratorium_days_left: int = Field(ge=0, le=730)
+    institute_tier: int = Field(ge=1, le=3)
+    nirf_rank: int = Field(ge=1, le=300)
+    nirf_score: float = Field(ge=0, le=100)
+    placement_cell_index: float = Field(ge=0, le=1)
+    historical_course_placement_rate: float = Field(ge=0, le=1)
+
+    @field_validator("course")
+    @classmethod
+    def valid_course(cls, value: str) -> str:
+        allowed = {"btech_cse", "mba", "core_engineering", "commerce_arts"}
+        if value not in allowed:
+            raise ValueError(f"course must be one of {sorted(allowed)}")
+        return value
+
+
+class EnrollmentResponse(BaseModel):
+    borrower_id: str
+    placement_risk_score: int
+    message: str
+
 class DashboardSummaryResponse(BaseModel):
     total_active_loans: int
     high_risk_count: int
@@ -602,3 +635,79 @@ def update_borrower(borrower_id: str, payload: BorrowerUpdateRequest):
 
     save_portfolio(df)
     return row_to_dashboard_borrower(df.iloc[row_index])
+
+
+@app.post("/enroll", response_model=EnrollmentResponse)
+def enroll(payload: EnrollmentRequest):
+    # Load or create portfolio dataframe
+    if PORTFOLIO_FILE.exists():
+        df = pd.read_csv(PORTFOLIO_FILE)
+    else:
+        df = pd.DataFrame(columns=DASHBOARD_REQUIRED_COLUMNS)
+
+    # Ensure required dashboard columns exist
+    for col in DASHBOARD_REQUIRED_COLUMNS:
+        if col not in df.columns:
+            df[col] = pd.NA
+
+    # Generate borrower_id as B + zero-padded sequence using portfolio IDs
+    try:
+        existing_ids = df["borrower_id"].astype(str).str.replace(r"[^0-9]", "", regex=True)
+        max_id = int(existing_ids.max()) if not existing_ids.isna().all() and existing_ids.size > 0 else 0
+    except Exception:
+        max_id = len(df)
+    next_id_num = max_id + 1
+    borrower_id = f"B{next_id_num:06d}"
+
+    # Build new row matching dashboard/portfolio schema
+    new_row = {
+        "borrower_id": borrower_id,
+        "name": payload.name,
+        "institute_name": payload.institute,
+        "city": payload.city,
+        "course": payload.course,
+        "nirf_rank": int(payload.nirf_rank),
+        "nirf_score": float(payload.nirf_score),
+        "institute_tier": int(payload.institute_tier),
+        "normalized_cgpa_10": float(payload.gpa),
+        "backlogs": int(payload.backlogs),
+        "internships": int(payload.internships),
+        "certifications": int(payload.certifications),
+        "job_portal_activity": 0.5,
+        "interview_count": int(payload.interview_count),
+        "placement_cell_index": float(payload.placement_cell_index),
+        "sector_demand_index": 0.5,
+        "historical_course_placement_rate": float(payload.historical_course_placement_rate),
+        "loan_amount_lakh": float(payload.loan_amount_lakh),
+        "moratorium_days_left": int(payload.moratorium_days_left),
+    }
+
+    # Append and save to portfolio.csv
+    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    save_portfolio(df)
+
+    # Score the new borrower
+    try:
+        scored = score_payload(BorrowerScoreRequest(
+            borrower_id=borrower_id,
+            nirf_rank=int(payload.nirf_rank),
+            nirf_score=float(payload.nirf_score),
+            institute_tier=int(payload.institute_tier),
+            course=payload.course,
+            normalized_cgpa_10=float(payload.gpa),
+            backlogs=int(payload.backlogs),
+            internships=int(payload.internships),
+            certifications=int(payload.certifications),
+            job_portal_activity=0.5,
+            interview_count=int(payload.interview_count),
+            placement_cell_index=float(payload.placement_cell_index),
+            sector_demand_index=0.5,
+            historical_course_placement_rate=float(payload.historical_course_placement_rate),
+            loan_amount_lakh=float(payload.loan_amount_lakh),
+            moratorium_days_left=int(payload.moratorium_days_left),
+        ))
+        prs = scored["placement_risk_score"]
+    except Exception:
+        prs = 0
+
+    return {"borrower_id": borrower_id, "placement_risk_score": prs, "message": "Enrollment saved to portfolio CSV"}

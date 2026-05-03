@@ -185,6 +185,31 @@ export function DashboardView({ data }: DashboardViewProps) {
     if (!editState || !editBorrowerId) {
       return;
     }
+    // Client-side validation to avoid showing 422 server errors for empty/invalid fields
+    const validateEdit = (state: BorrowerUpdateRequest) => {
+      if (!state.borrower_name?.trim() || !state.city?.trim() || !state.institute?.trim()) return false;
+      if (!Number.isFinite(Number(state.normalized_cgpa_10)) || state.normalized_cgpa_10 < 0 || state.normalized_cgpa_10 > 10) return false;
+      if (!Number.isFinite(Number(state.nirf_score)) || state.nirf_score < 0 || state.nirf_score > 100) return false;
+      if (!Number.isFinite(Number(state.nirf_rank)) || state.nirf_rank < 1 || state.nirf_rank > 300) return false;
+      if (!Number.isFinite(Number(state.backlogs)) || state.backlogs < 0 || state.backlogs > 30) return false;
+      if (!Number.isFinite(Number(state.internships)) || state.internships < 0 || state.internships > 10) return false;
+      if (!Number.isFinite(Number(state.certifications)) || state.certifications < 0 || state.certifications > 20) return false;
+      if (!Number.isFinite(Number(state.job_portal_activity)) || state.job_portal_activity < 0 || state.job_portal_activity > 1) return false;
+      if (!Number.isFinite(Number(state.interview_count)) || state.interview_count < 0 || state.interview_count > 50) return false;
+      if (!Number.isFinite(Number(state.placement_cell_index)) || state.placement_cell_index < 0 || state.placement_cell_index > 1) return false;
+      if (!Number.isFinite(Number(state.sector_demand_index)) || state.sector_demand_index < 0 || state.sector_demand_index > 1) return false;
+      if (!Number.isFinite(Number(state.historical_course_placement_rate)) || state.historical_course_placement_rate < 0 || state.historical_course_placement_rate > 1) return false;
+      if (!Number.isFinite(Number(state.loan_amount_lakh)) || state.loan_amount_lakh <= 0) return false;
+      if (!Number.isFinite(Number(state.moratorium_days_left)) || state.moratorium_days_left < 0 || state.moratorium_days_left > 730) return false;
+      if (!Number.isFinite(Number(state.institute_tier)) || ![1, 2, 3].includes(Number(state.institute_tier))) return false;
+      return true;
+    };
+
+    if (!validateEdit(editState)) {
+      setEditError("Please fill all required fields and correct invalid values.");
+      setEditStatus("error");
+      return;
+    }
 
     setEditStatus("saving");
     setEditError(null);
@@ -227,6 +252,8 @@ export function DashboardView({ data }: DashboardViewProps) {
 
   function updateEdit<K extends keyof BorrowerUpdateRequest>(key: K, value: BorrowerUpdateRequest[K]) {
     setEditState((current) => (current ? { ...current, [key]: value } : current));
+    // clear previous validation error when user edits a field
+    if (editError) setEditError(null);
   }
 
   return (
