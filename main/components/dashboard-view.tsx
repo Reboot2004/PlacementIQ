@@ -108,6 +108,7 @@ export function DashboardView({ data }: DashboardViewProps) {
   const [editState, setEditState] = useState<BorrowerUpdateRequest | null>(null);
   const [editStatus, setEditStatus] = useState<"idle" | "loading" | "saving" | "error">("idle");
   const [editError, setEditError] = useState<string | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const riskRank: Record<RiskFlag, number> = {
     Low: 0,
     Medium: 1,
@@ -146,6 +147,7 @@ export function DashboardView({ data }: DashboardViewProps) {
       setEditState(null);
       setEditStatus("idle");
       setEditError(null);
+      setEditModalOpen(false);
     }
   }, [editBorrowerId, selectedId]);
 
@@ -155,6 +157,7 @@ export function DashboardView({ data }: DashboardViewProps) {
 
   async function startEdit(borrowerId: string) {
     setEditBorrowerId(borrowerId);
+    setEditModalOpen(true);
     setEditStatus("loading");
     setEditError(null);
 
@@ -207,6 +210,7 @@ export function DashboardView({ data }: DashboardViewProps) {
       setEditBorrowerId(null);
       setEditState(null);
       setEditStatus("idle");
+      setEditModalOpen(false);
     } catch (error) {
       setEditError(error instanceof Error ? error.message : "Unable to update borrower.");
       setEditStatus("error");
@@ -218,6 +222,7 @@ export function DashboardView({ data }: DashboardViewProps) {
     setEditState(null);
     setEditStatus("idle");
     setEditError(null);
+    setEditModalOpen(false);
   }
 
   function updateEdit<K extends keyof BorrowerUpdateRequest>(key: K, value: BorrowerUpdateRequest[K]) {
@@ -424,265 +429,6 @@ export function DashboardView({ data }: DashboardViewProps) {
                 </div>
               </div>
 
-              {isEditing ? (
-                <div className="mt-5 rounded-[1.45rem] border border-slate-200 bg-white p-4">
-                  <div className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Update borrower details</div>
-                  {editStatus === "loading" ? (
-                    <p className="mt-3 text-sm text-slate-600">Loading borrower details...</p>
-                  ) : editState ? (
-                    <form onSubmit={saveEdit} className="mt-4 grid gap-4 md:grid-cols-2">
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Name</span>
-                        <input
-                          type="text"
-                          value={editState.borrower_name}
-                          onChange={(event) => updateEdit("borrower_name", event.target.value)}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">City</span>
-                        <input
-                          type="text"
-                          value={editState.city}
-                          onChange={(event) => updateEdit("city", event.target.value)}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Institute</span>
-                        <input
-                          type="text"
-                          value={editState.institute}
-                          onChange={(event) => updateEdit("institute", event.target.value)}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Course</span>
-                        <select
-                          value={editState.course}
-                          onChange={(event) => updateEdit("course", event.target.value as BorrowerUpdateRequest["course"])}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        >
-                          {courseOptions.map((course) => (
-                            <option key={course.value} value={course.value}>
-                              {course.label}
-                            </option>
-                          ))}
-                        </select>
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Institute tier</span>
-                        <select
-                          value={editState.institute_tier}
-                          onChange={(event) => updateEdit("institute_tier", Number(event.target.value) as BorrowerUpdateRequest["institute_tier"])}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        >
-                          {tierOptions.map((tier) => (
-                            <option key={tier.value} value={tier.value}>
-                              {tier.label}
-                            </option>
-                          ))}
-                        </select>
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">NIRF rank</span>
-                        <input
-                          type="number"
-                          min={1}
-                          max={300}
-                          value={Number.isFinite(editState.nirf_rank) ? editState.nirf_rank : ""}
-                          onChange={(event) => updateEdit("nirf_rank", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">NIRF score</span>
-                        <input
-                          type="number"
-                          step="0.1"
-                          min={0}
-                          max={100}
-                          value={Number.isFinite(editState.nirf_score) ? editState.nirf_score : ""}
-                          onChange={(event) => updateEdit("nirf_score", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">CGPA (10-point)</span>
-                        <input
-                          type="number"
-                          step="0.1"
-                          min={0}
-                          max={10}
-                          value={Number.isFinite(editState.normalized_cgpa_10) ? editState.normalized_cgpa_10 : ""}
-                          onChange={(event) => updateEdit("normalized_cgpa_10", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Backlogs</span>
-                        <input
-                          type="number"
-                          min={0}
-                          max={30}
-                          value={Number.isFinite(editState.backlogs) ? editState.backlogs : ""}
-                          onChange={(event) => updateEdit("backlogs", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Internships</span>
-                        <input
-                          type="number"
-                          min={0}
-                          max={10}
-                          value={Number.isFinite(editState.internships) ? editState.internships : ""}
-                          onChange={(event) => updateEdit("internships", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Certifications</span>
-                        <input
-                          type="number"
-                          min={0}
-                          max={20}
-                          value={Number.isFinite(editState.certifications) ? editState.certifications : ""}
-                          onChange={(event) => updateEdit("certifications", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Job portal activity</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          max={1}
-                          value={Number.isFinite(editState.job_portal_activity) ? editState.job_portal_activity : ""}
-                          onChange={(event) => updateEdit("job_portal_activity", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Interview count</span>
-                        <input
-                          type="number"
-                          min={0}
-                          max={50}
-                          value={Number.isFinite(editState.interview_count) ? editState.interview_count : ""}
-                          onChange={(event) => updateEdit("interview_count", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Placement cell activity</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          max={1}
-                          value={Number.isFinite(editState.placement_cell_index) ? editState.placement_cell_index : ""}
-                          onChange={(event) => updateEdit("placement_cell_index", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Sector demand index</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          max={1}
-                          value={Number.isFinite(editState.sector_demand_index) ? editState.sector_demand_index : ""}
-                          onChange={(event) => updateEdit("sector_demand_index", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Historical placement rate</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          max={1}
-                          value={Number.isFinite(editState.historical_course_placement_rate) ? editState.historical_course_placement_rate : ""}
-                          onChange={(event) => updateEdit("historical_course_placement_rate", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Loan amount (lakh)</span>
-                        <input
-                          type="number"
-                          step="0.1"
-                          min={0}
-                          max={100}
-                          value={Number.isFinite(editState.loan_amount_lakh) ? editState.loan_amount_lakh : ""}
-                          onChange={(event) => updateEdit("loan_amount_lakh", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <FieldWrapper>
-                        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Moratorium days</span>
-                        <input
-                          type="number"
-                          min={0}
-                          max={730}
-                          value={Number.isFinite(editState.moratorium_days_left) ? editState.moratorium_days_left : ""}
-                          onChange={(event) => updateEdit("moratorium_days_left", numberValue(event.target.value))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
-                        />
-                      </FieldWrapper>
-
-                      <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-3">
-                        <div className="text-sm text-slate-600">
-                          Updates are saved back to placementiq_training.csv.
-                          {editError ? <span className="ml-2 text-rose-700">{editError}</span> : null}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={cancelEdit}
-                            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={editStatus === "saving"}
-                            className="rounded-2xl bg-linear-to-r from-slate-900 to-slate-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:scale-[1.01] disabled:cursor-wait disabled:opacity-80 disabled:hover:scale-100"
-                          >
-                            {editStatus === "saving" ? "Saving..." : "Save updates"}
-                          </button>
-                        </div>
-                      </div>
-                    </form>
-                  ) : (
-                    <p className="mt-3 text-sm text-slate-600">Select a borrower to edit their details.</p>
-                  )}
-                </div>
-              ) : null}
-
               <div className="mt-5 rounded-[1.45rem] border border-slate-200 bg-white p-4">
                 <div className="flex items-center justify-between gap-3">
                   <h4 className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500">Top SHAP-style drivers</h4>
@@ -712,6 +458,283 @@ export function DashboardView({ data }: DashboardViewProps) {
           ) : null}
         </div>
       </section>
+
+      {editModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 px-4 py-6 backdrop-blur-sm sm:items-center">
+          <div className="w-full max-w-[min(96vw,72rem)] max-h-[92vh] overflow-y-auto rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.24)]">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Edit borrower details</p>
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+                  {editState?.borrower_name ?? selected?.borrower_name ?? "Borrower"}
+                </h3>
+                <p className="mt-2 text-sm text-slate-600">Update the borrower profile and recalculate placement confidence.</p>
+              </div>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+
+            {editStatus === "loading" ? (
+              <p className="py-8 text-sm text-slate-600">Loading borrower details...</p>
+            ) : editState ? (
+              <form onSubmit={saveEdit} className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Name</span>
+                  <input
+                    type="text"
+                    value={editState.borrower_name}
+                    onChange={(event) => updateEdit("borrower_name", event.target.value)}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">City</span>
+                  <input
+                    type="text"
+                    value={editState.city}
+                    onChange={(event) => updateEdit("city", event.target.value)}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Institute</span>
+                  <input
+                    type="text"
+                    value={editState.institute}
+                    onChange={(event) => updateEdit("institute", event.target.value)}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Course</span>
+                  <select
+                    value={editState.course}
+                    onChange={(event) => updateEdit("course", event.target.value as BorrowerUpdateRequest["course"])}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  >
+                    {courseOptions.map((course) => (
+                      <option key={course.value} value={course.value}>
+                        {course.label}
+                      </option>
+                    ))}
+                  </select>
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Institute tier</span>
+                  <select
+                    value={editState.institute_tier}
+                    onChange={(event) => updateEdit("institute_tier", Number(event.target.value) as BorrowerUpdateRequest["institute_tier"])}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  >
+                    {tierOptions.map((tier) => (
+                      <option key={tier.value} value={tier.value}>
+                        {tier.label}
+                      </option>
+                    ))}
+                  </select>
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">NIRF rank</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={300}
+                    value={Number.isFinite(editState.nirf_rank) ? editState.nirf_rank : ""}
+                    onChange={(event) => updateEdit("nirf_rank", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">NIRF score</span>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min={0}
+                    max={100}
+                    value={Number.isFinite(editState.nirf_score) ? editState.nirf_score : ""}
+                    onChange={(event) => updateEdit("nirf_score", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">CGPA (10-point)</span>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min={0}
+                    max={10}
+                    value={Number.isFinite(editState.normalized_cgpa_10) ? editState.normalized_cgpa_10 : ""}
+                    onChange={(event) => updateEdit("normalized_cgpa_10", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Backlogs</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={30}
+                    value={Number.isFinite(editState.backlogs) ? editState.backlogs : ""}
+                    onChange={(event) => updateEdit("backlogs", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Internships</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    value={Number.isFinite(editState.internships) ? editState.internships : ""}
+                    onChange={(event) => updateEdit("internships", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Certifications</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={20}
+                    value={Number.isFinite(editState.certifications) ? editState.certifications : ""}
+                    onChange={(event) => updateEdit("certifications", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Job portal activity</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    max={1}
+                    value={Number.isFinite(editState.job_portal_activity) ? editState.job_portal_activity : ""}
+                    onChange={(event) => updateEdit("job_portal_activity", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Interview count</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={50}
+                    value={Number.isFinite(editState.interview_count) ? editState.interview_count : ""}
+                    onChange={(event) => updateEdit("interview_count", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Placement cell activity</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    max={1}
+                    value={Number.isFinite(editState.placement_cell_index) ? editState.placement_cell_index : ""}
+                    onChange={(event) => updateEdit("placement_cell_index", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Sector demand index</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    max={1}
+                    value={Number.isFinite(editState.sector_demand_index) ? editState.sector_demand_index : ""}
+                    onChange={(event) => updateEdit("sector_demand_index", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Historical placement rate</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    max={1}
+                    value={Number.isFinite(editState.historical_course_placement_rate) ? editState.historical_course_placement_rate : ""}
+                    onChange={(event) => updateEdit("historical_course_placement_rate", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Loan amount (lakh)</span>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min={0}
+                    max={100}
+                    value={Number.isFinite(editState.loan_amount_lakh) ? editState.loan_amount_lakh : ""}
+                    onChange={(event) => updateEdit("loan_amount_lakh", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <FieldWrapper>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Moratorium days</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={730}
+                    value={Number.isFinite(editState.moratorium_days_left) ? editState.moratorium_days_left : ""}
+                    onChange={(event) => updateEdit("moratorium_days_left", numberValue(event.target.value))}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-900 outline-none transition focus:border-sky-400"
+                  />
+                </FieldWrapper>
+
+                <div className="md:col-span-2 lg:col-span-3 flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <div className="text-sm text-slate-600">
+                    Changes update the portfolio CSV and recalculate placement confidence.
+                    {editError ? <span className="ml-2 text-rose-700">{editError}</span> : null}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={editStatus === "saving"}
+                      className="rounded-2xl bg-linear-to-r from-slate-900 to-slate-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:scale-[1.01] disabled:cursor-wait disabled:opacity-80 disabled:hover:scale-100"
+                    >
+                      {editStatus === "saving" ? "Saving..." : "Save updates"}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <p className="py-8 text-sm text-slate-600">Select a borrower to edit their details.</p>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
