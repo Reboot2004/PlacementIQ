@@ -55,6 +55,7 @@ DASHBOARD_REQUIRED_COLUMNS = [
     "historical_course_placement_rate",
     "loan_amount_lakh",
     "moratorium_days_left",
+    name: str
 ]
 
 
@@ -119,10 +120,11 @@ class DashboardBorrowerResponse(BaseModel):
     placement_risk_score: int
     risk_flag: str
     placement_probability: ProbabilityResponse
-    expected_salary_band: str
-    recommended_action: str
-    top_drivers: List[DriverResponse]
-
+    name: str
+    institute_name: str
+    city: str
+    loan_amount_lakh: float
+    moratorium_days_left: int
 
 class DashboardSummaryResponse(BaseModel):
     total_active_loans: int

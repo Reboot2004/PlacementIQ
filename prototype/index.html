@@ -118,7 +118,10 @@
                   <p class="eyebrow">Individual borrower card</p>
                   <h3 id="detailTitle">Selected Borrower</h3>
                 </div>
-                <span id="riskPill" class="risk-pill">High</span>
+                <div class="header-actions">
+                  <button id="editDetailsBtn" class="text-button">Edit Details</button>
+                  <span id="riskPill" class="risk-pill">High</span>
+                </div>
               </div>
 
               <div class="borrower-identity">
@@ -183,6 +186,84 @@
             </section>
           </div>
         </section>
+
+        <!-- Edit Details Modal -->
+        <div id="editModal" class="modal" aria-hidden="true">
+          <div class="modal-backdrop"></div>
+          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+            <header>
+              <h3 id="editTitle">Edit Borrower Details</h3>
+              <button id="closeEdit" class="text-button">✕</button>
+            </header>
+            <form id="editForm" class="edit-form">
+              <label>
+                Name
+                <input name="name" type="text" />
+              </label>
+              <label>
+                City
+                <input name="city" type="text" />
+              </label>
+              <label>
+                CGPA (10-point)
+                <input name="cgpa" type="number" min="0" max="10" step="0.1" />
+              </label>
+              <label>
+                Internships
+                <input name="internships" type="number" min="0" max="10" />
+              </label>
+              <label>
+                Certifications
+                <input name="certifications" type="number" min="0" max="20" />
+              </label>
+              <label>
+                Institute tier
+                <select name="tier">
+                  <option value="1">Tier 1</option>
+                  <option value="2">Tier 2</option>
+                  <option value="3">Tier 3</option>
+                </select>
+              </label>
+              <label>
+                Course
+                <select name="course">
+                  <option value="btech_cse">B.Tech CSE</option>
+                  <option value="mba">MBA</option>
+                  <option value="core_engineering">Core Engineering</option>
+                  <option value="commerce_arts">Arts / Commerce</option>
+                </select>
+              </label>
+              <label>
+                Sector demand
+                <select name="demand">
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </label>
+              <label>
+                Placement cell activity
+                <select name="placementCell">
+                  <option value="strong">Strong</option>
+                  <option value="average">Average</option>
+                  <option value="weak">Weak</option>
+                </select>
+              </label>
+              <label>
+                Loan amount (Lakh)
+                <input name="loan" type="number" min="0" step="0.1" />
+              </label>
+              <label>
+                Moratorium days left
+                <input name="daysLeft" type="number" min="0" />
+              </label>
+              <div class="modal-actions">
+                <button id="saveEdit" type="button" class="primary">Save</button>
+                <button id="cancelEdit" type="button" class="text-button">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
 
         <section class="screen" id="score-lab">
           <div class="split-layout">

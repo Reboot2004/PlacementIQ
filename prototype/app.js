@@ -366,3 +366,68 @@ renderMetrics();
 renderTable();
 selectBorrower(selectedId);
 renderLab();
+
+// Edit modal logic
+const editBtn = document.querySelector("#editDetailsBtn");
+const editModal = document.querySelector("#editModal");
+const closeEdit = document.querySelector("#closeEdit");
+const cancelEdit = document.querySelector("#cancelEdit");
+const saveEdit = document.querySelector("#saveEdit");
+const editForm = document.querySelector("#editForm");
+
+function showEditModal() {
+  const borrower = portfolio.find((p) => p.id === selectedId);
+  if (!borrower) return;
+  editForm.name.value = borrower.name || "";
+  editForm.city.value = borrower.city || "";
+  editForm.cgpa.value = borrower.cgpa || 0;
+  editForm.internships.value = borrower.internships || 0;
+  editForm.certifications.value = borrower.certifications || 0;
+  editForm.tier.value = borrower.tier || 2;
+  // map course display back to option value where needed
+  const courseKey = (function (c) {
+    if (c.includes("B.Tech")) return "btech_cse";
+    if (c === "MBA") return "mba";
+    if (c === "Core Engineering") return "core_engineering";
+    return "commerce_arts";
+  })(borrower.course || "B.Tech CSE");
+  editForm.course.value = courseKey;
+  editForm.demand.value = borrower.demand || "medium";
+  editForm.placementCell.value = borrower.placementCell || "average";
+  editForm.loan.value = borrower.loan || 0;
+  editForm.daysLeft.value = borrower.daysLeft || 0;
+
+  editModal.setAttribute("aria-hidden", "false");
+  editModal.classList.add("open");
+}
+
+function hideEditModal() {
+  editModal.setAttribute("aria-hidden", "true");
+  editModal.classList.remove("open");
+}
+
+function applyEdit() {
+  const borrower = portfolio.find((p) => p.id === selectedId);
+  if (!borrower) return;
+  borrower.name = editForm.name.value.trim() || borrower.name;
+  borrower.city = editForm.city.value.trim() || borrower.city;
+  borrower.cgpa = Number(editForm.cgpa.value) || borrower.cgpa;
+  borrower.internships = Number(editForm.internships.value) || borrower.internships;
+  borrower.certifications = Number(editForm.certifications.value) || borrower.certifications;
+  borrower.tier = Number(editForm.tier.value) || borrower.tier;
+  const courseMap = { btech_cse: "B.Tech CSE", mba: "MBA", core_engineering: "Core Engineering", commerce_arts: "Arts / Commerce" };
+  borrower.course = courseMap[editForm.course.value] || borrower.course;
+  borrower.demand = editForm.demand.value || borrower.demand;
+  borrower.placementCell = editForm.placementCell.value || borrower.placementCell;
+  borrower.loan = Number(editForm.loan.value) || borrower.loan;
+  borrower.daysLeft = Number(editForm.daysLeft.value) || borrower.daysLeft;
+
+  // re-render with updated score
+  selectBorrower(selectedId);
+  hideEditModal();
+}
+
+if (editBtn) editBtn.addEventListener("click", showEditModal);
+if (closeEdit) closeEdit.addEventListener("click", hideEditModal);
+if (cancelEdit) cancelEdit.addEventListener("click", hideEditModal);
+if (saveEdit) saveEdit.addEventListener("click", applyEdit);
