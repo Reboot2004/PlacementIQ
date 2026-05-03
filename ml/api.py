@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODEL_DIR = ROOT / "ml" / "models" / "pitch"
+MODEL_DIR = ROOT / "ml" / "models" / "pitch_pickle"
 TRAINING_FILE = ROOT / "ml" / "data" / "processed" / "placementiq_training.csv"
 TARGETS = ["placed_3m", "placed_6m", "placed_12m"]
 
@@ -153,10 +153,10 @@ app = FastAPI(
 
 
 def load_artifacts():
-    stage1 = {target: joblib.load(MODEL_DIR / f"stage1_xgboost_{target}.joblib") for target in TARGETS}
-    stage2 = {target: joblib.load(MODEL_DIR / f"stage2_lightgbm_{target}.joblib") for target in TARGETS}
-    explainers = {target: joblib.load(MODEL_DIR / f"shap_explainer_{target}.joblib") for target in TARGETS}
-    salary_model = joblib.load(MODEL_DIR / "salary_lightgbm.joblib")
+    stage1 = {target: joblib.load(MODEL_DIR / f"stage1_xgboost_{target}.pickle") for target in TARGETS}
+    stage2 = {target: joblib.load(MODEL_DIR / f"stage2_lightgbm_{target}.pickle") for target in TARGETS}
+    explainers = {target: joblib.load(MODEL_DIR / f"shap_explainer_{target}.pickle") for target in TARGETS}
+    salary_model = joblib.load(MODEL_DIR / "salary_lightgbm.pickle")
     return stage1, stage2, explainers, salary_model
 
 
@@ -193,6 +193,43 @@ def recommendation(flag: str) -> str:
     return "Keep in normal monitoring queue and refresh score after offer confirmation."
 
 
+def humanize_feature_name(raw: str) -> str:
+    name = raw.split("__", 1)[-1]
+    labels = {
+        "nirf_rank": "NIRF rank",
+        "nirf_score": "NIRF score",
+        "normalized_cgpa_10": "CGPA (10-point)",
+        "backlogs": "Backlogs",
+        "internships": "Internships",
+        "certifications": "Certifications",
+        "job_portal_activity": "Job portal activity",
+        "interview_count": "Interview count",
+        "placement_cell_index": "Placement cell activity",
+        "sector_demand_index": "Sector demand index",
+        "historical_course_placement_rate": "Historical placement rate",
+        "loan_amount_lakh": "Loan amount (lakh)",
+        "moratorium_days_left": "Moratorium days left",
+        "placed_3m_stage1_prior": "Stage 1 placement prior (3m)",
+        "placed_6m_stage1_prior": "Stage 1 placement prior (6m)",
+        "placed_12m_stage1_prior": "Stage 1 placement prior (12m)",
+    }
+    if name in labels:
+        return labels[name]
+    if name.startswith("course_"):
+        course = name.replace("course_", "")
+        course_labels = {
+            "btech_cse": "B.Tech CSE",
+            "mba": "MBA",
+            "core_engineering": "Core Engineering",
+            "commerce_arts": "Arts / Commerce",
+        }
+        return f"Course: {course_labels.get(course, course)}"
+    if name.startswith("institute_tier_"):
+        tier = name.replace("institute_tier_", "")
+        return f"Institute tier {tier}"
+    return " ".join(word.capitalize() for word in name.split("_"))
+
+
 def shap_drivers(model, explainer, frame: pd.DataFrame, features: List[str], limit: int = 5) -> List[DriverResponse]:
     transformed = model.named_steps["prep"].transform(frame[features])
     feature_names = model.named_steps["prep"].get_feature_names_out()
@@ -201,7 +238,7 @@ def shap_drivers(model, explainer, frame: pd.DataFrame, features: List[str], lim
         values = values[-1]
     row_values = values[0]
     ranked = sorted(zip(feature_names, row_values), key=lambda item: abs(item[1]), reverse=True)[:limit]
-    return [{"feature": str(name), "impact": round(float(value), 3)} for name, value in ranked]
+    return [{"feature": humanize_feature_name(str(name)), "impact": round(float(value), 3)} for name, value in ranked]
 
 
 def score_payload(payload: BorrowerScoreRequest) -> Dict:
@@ -274,7 +311,7 @@ def health():
         "status": "ok",
         "model_dir": str(MODEL_DIR),
         "training_file": str(TRAINING_FILE),
-        "model_files": sorted([p.name for p in MODEL_DIR.glob("*.joblib")]),
+        "model_files": sorted([p.name for p in MODEL_DIR.glob("*.pickle")]),
     }
 
 

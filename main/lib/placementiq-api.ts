@@ -8,34 +8,38 @@ const API_BASE_URL =
 const DASHBOARD_PATH = process.env.PLACEMENTIQ_DASHBOARD_PATH ?? "/dashboard";
 const SCORE_PATH = process.env.PLACEMENTIQ_SCORE_PATH ?? "/score";
 
-async function fetchJson<T>(path: string, init: RequestInit, fallback: T): Promise<T> {
+async function fetchJson<T>(path: string, init: RequestInit): Promise<T> {
+  const response = await fetch(new URL(path, API_BASE_URL), {
+    ...init,
+    cache: "no-store",
+    headers: {
+      "content-type": "application/json",
+      ...(init.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+}
+
+async function fetchJsonWithFallback<T>(path: string, init: RequestInit, fallback: T): Promise<T> {
   try {
-    const response = await fetch(new URL(path, API_BASE_URL), {
-      ...init,
-      cache: "no-store",
-      headers: {
-        "content-type": "application/json",
-        ...(init.headers ?? {}),
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Request failed with ${response.status}`);
-    }
-
-    return (await response.json()) as T;
+    return await fetchJson<T>(path, init);
   } catch {
     return fallback;
   }
 }
 
 export function getDashboardData(): Promise<DashboardPayload> {
-  return fetchJson<DashboardPayload>(DASHBOARD_PATH, { method: "GET" }, demoDashboardPayload);
+  return fetchJsonWithFallback<DashboardPayload>(DASHBOARD_PATH, { method: "GET" }, demoDashboardPayload);
 }
 
 export function postScore(payload: ScoreRequest): Promise<ScoreResponse> {
   return fetchJson<ScoreResponse>(SCORE_PATH, {
     method: "POST",
     body: JSON.stringify(payload),
-  }, buildScorePreview(payload));
+  });
 }

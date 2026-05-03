@@ -151,7 +151,7 @@ def train(args):
         model.fit(train_df[INSTITUTE_FEATURES], train_df[target])
         stage1_models[target] = model
         metrics["targets"][target] = {"stage1_xgboost": classifier_metrics(model, test_df, INSTITUTE_FEATURES, target)}
-        joblib.dump(model, output_dir / f"stage1_xgboost_{target}.joblib")
+        joblib.dump(model, output_dir / f"stage1_xgboost_{target}.pickle")
 
     train_df, test_df = add_stage1_priors(train_df, test_df, stage1_models)
 
@@ -162,12 +162,12 @@ def train(args):
         model.fit(train_df[features], train_df[target])
         stage2_models[target] = model
         metrics["targets"][target]["stage2_lightgbm"] = classifier_metrics(model, test_df, features, target)
-        joblib.dump(model, output_dir / f"stage2_lightgbm_{target}.joblib")
+        joblib.dump(model, output_dir / f"stage2_lightgbm_{target}.pickle")
 
         transformed = transformed_frame(model, train_df.sample(min(1000, len(train_df)), random_state=42), features)
         explainer = shap.TreeExplainer(model.named_steps["model"])
         shap_values = explainer.shap_values(transformed)
-        joblib.dump(explainer, output_dir / f"shap_explainer_{target}.joblib")
+        joblib.dump(explainer, output_dir / f"shap_explainer_{target}.pickle")
         metrics["targets"][target]["shap_reference_rows"] = int(len(transformed))
         metrics["targets"][target]["shap_output_type"] = str(type(shap_values).__name__)
 
@@ -183,9 +183,9 @@ def train(args):
         "rmse_lpa": round(float(mean_squared_error(salary_test_rows["actual_salary_lpa"], salary_predictions) ** 0.5), 4),
         "test_rows": int(len(salary_test_rows)),
     }
-    joblib.dump(salary_model, output_dir / "salary_lightgbm.joblib")
+    joblib.dump(salary_model, output_dir / "salary_lightgbm.pickle")
     salary_transformed = transformed_frame(salary_model, salary_rows.sample(min(1000, len(salary_rows)), random_state=42), salary_features)
-    joblib.dump(shap.TreeExplainer(salary_model.named_steps["model"]), output_dir / "shap_explainer_salary.joblib")
+    joblib.dump(shap.TreeExplainer(salary_model.named_steps["model"]), output_dir / "shap_explainer_salary.pickle")
 
     metadata = {
         "model_family": "XGBoost + LightGBM + SHAP",

@@ -52,7 +52,7 @@ function ScoreDial({ score }: { score: number }) {
       <div className="relative grid h-[9rem] w-[9rem] place-items-center rounded-full border border-slate-200 bg-slate-50 text-center">
         <div>
           <div className="text-4xl font-semibold tracking-tight text-slate-900">{score}</div>
-          <div className="text-xs uppercase tracking-[0.3em] text-slate-500">Placement Risk</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-slate-500">Placement Confidence</div>
         </div>
       </div>
     </div>

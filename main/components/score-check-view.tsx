@@ -104,7 +104,7 @@ function ScoreDial({ score }: { score: number }) {
       <div className="relative grid h-40 w-40 place-items-center rounded-full border border-slate-200 bg-slate-50 text-center">
         <div>
           <div className="text-5xl font-semibold tracking-tight text-slate-900">{score}</div>
-          <div className="mt-1 text-[0.68rem] uppercase tracking-[0.32em] text-slate-500">Placement Risk</div>
+          <div className="mt-1 text-[0.68rem] uppercase tracking-[0.32em] text-slate-500">Placement Confidence</div>
         </div>
       </div>
     </div>
@@ -119,12 +119,18 @@ function toApiPreview(request: ScoreRequest, response: ScoreResponse) {
   };
 }
 
+function isErrorDetail(value: unknown): value is { detail?: string } {
+  return typeof value === "object" && value !== null && "detail" in value;
+}
+
 export function ScoreCheckView() {
   const [formState, setFormState] = useState<ScoreInput>(initialFormState);
   const [result, setResult] = useState<ScoreResponse | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [errors, setErrors] = useState<ScoreErrors>({});
   const [lastPayload, setLastPayload] = useState<ScoreRequest | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isLoading = status === "loading";
 
   const emptyResponse = useMemo<ScoreResponse>(
     () => ({
@@ -166,6 +172,7 @@ export function ScoreCheckView() {
       ...formState,
     };
     setLastPayload(payload);
+    setErrorMessage(null);
     setStatus("loading");
 
     try {
@@ -177,15 +184,18 @@ export function ScoreCheckView() {
         body: JSON.stringify(payload),
       });
 
+      const responseBody = (await response.json().catch(() => null)) as ScoreResponse | { detail?: string } | null;
+
       if (!response.ok) {
-        throw new Error(`Score request failed with ${response.status}`);
+        const detail = isErrorDetail(responseBody) ? responseBody.detail : null;
+        throw new Error(detail || `Score request failed with ${response.status}`);
       }
 
-      const payload = (await response.json()) as ScoreResponse;
-      setResult(payload);
+      setResult(responseBody as ScoreResponse);
       setStatus("ready");
-    } catch {
+    } catch (error) {
       setResult(null);
+      setErrorMessage(error instanceof Error ? error.message : "Score request failed.");
       setStatus("error");
     }
   }
@@ -208,6 +218,7 @@ export function ScoreCheckView() {
     setStatus("idle");
     setErrors({});
     setLastPayload(null);
+    setErrorMessage(null);
   }
 
   return (
@@ -436,9 +447,17 @@ export function ScoreCheckView() {
             </div>
             <button
               type="submit"
-              className="rounded-2xl bg-linear-to-r from-slate-900 to-slate-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:scale-[1.01]"
+              disabled={isLoading}
+              className="rounded-2xl bg-linear-to-r from-slate-900 to-slate-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:scale-[1.01] disabled:cursor-wait disabled:opacity-80 disabled:hover:scale-100"
             >
-              Run score check
+              {isLoading ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />
+                  Running score check
+                </span>
+              ) : (
+                "Run score check"
+              )}
             </button>
           </div>
         </form>
@@ -448,7 +467,7 @@ export function ScoreCheckView() {
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-5">
           <div>
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-500">Live model output</p>
-            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Placement Risk Result</h3>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Placement Confidence Score</h3>
             <p className="mt-2 text-sm text-slate-600">
               {status === "ready"
                 ? "Backend response returned from your API route."
@@ -458,6 +477,9 @@ export function ScoreCheckView() {
                     ? "Scoring failed. Verify the API is running and try again."
                     : "Adjust the form and submit to run the live scoring flow."}
             </p>
+            {status === "error" && errorMessage ? (
+              <p className="mt-2 text-xs font-medium text-rose-700">{errorMessage}</p>
+            ) : null}
           </div>
           <span
             className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
@@ -470,7 +492,7 @@ export function ScoreCheckView() {
                 : "border-slate-200 bg-slate-50 text-slate-500"
             }`}
           >
-            {status === "ready" ? active.risk_flag : "0"}
+            {status === "loading" ? "Loading" : status === "ready" ? active.risk_flag : "0"}
           </span>
         </div>
 
