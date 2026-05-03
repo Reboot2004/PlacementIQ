@@ -15,7 +15,18 @@ const navigation = [
     label: "Score Check",
     description: "POST /score simulation",
   },
+  {
+    href: "/enrollments",
+    label: "Enrollments",
+    description: "Borrower intake form",
+  },
 ];
+
+const navIcons: Record<string, string> = {
+  Dashboard: "▦",
+  "Score Check": "◌",
+  Enrollments: "+",
+};
 
 type SiteShellProps = {
   children: ReactNode;
@@ -59,9 +70,7 @@ export function SiteShell({ children }: SiteShellProps) {
                           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                       }`}
                     >
-                      <span className={active ? "text-amber-600" : "text-slate-500"}>
-                        {item.label === "Dashboard" ? "▦" : "◌"}
-                      </span>
+                      <span className={active ? "text-amber-600" : "text-slate-500"}>{navIcons[item.label] ?? "◌"}</span>
                       <span>{item.label}</span>
                     </Link>
                   );

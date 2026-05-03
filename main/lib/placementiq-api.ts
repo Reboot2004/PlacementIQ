@@ -1,4 +1,14 @@
-import { buildScorePreview, demoDashboardPayload, type DashboardPayload, type ScoreRequest, type ScoreResponse } from "@/lib/placementiq";
+import {
+  buildScorePreview,
+  demoDashboardPayload,
+  type BorrowerDetail,
+  type BorrowerUpdateRequest,
+  type DashboardPayload,
+  type EnrollmentRequest,
+  type EnrollmentResponse,
+  type ScoreRequest,
+  type ScoreResponse,
+} from "@/lib/placementiq";
 
 const API_BASE_URL =
   process.env.PLACEMENTIQ_API_URL ??
@@ -7,6 +17,7 @@ const API_BASE_URL =
 
 const DASHBOARD_PATH = process.env.PLACEMENTIQ_DASHBOARD_PATH ?? "/dashboard";
 const SCORE_PATH = process.env.PLACEMENTIQ_SCORE_PATH ?? "/score";
+const ENROLL_PATH = process.env.PLACEMENTIQ_ENROLL_PATH ?? "/enroll";
 
 async function fetchJson<T>(path: string, init: RequestInit): Promise<T> {
   const response = await fetch(new URL(path, API_BASE_URL), {
@@ -40,6 +51,24 @@ export function getDashboardData(): Promise<DashboardPayload> {
 export function postScore(payload: ScoreRequest): Promise<ScoreResponse> {
   return fetchJson<ScoreResponse>(SCORE_PATH, {
     method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function postEnrollment(payload: EnrollmentRequest): Promise<EnrollmentResponse> {
+  return fetchJson<EnrollmentResponse>(ENROLL_PATH, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getBorrower(borrowerId: string): Promise<BorrowerDetail> {
+  return fetchJson<BorrowerDetail>(`/borrowers/${borrowerId}`, { method: "GET" });
+}
+
+export function updateBorrower(borrowerId: string, payload: BorrowerUpdateRequest): Promise<DashboardPayload["borrowers"][number]> {
+  return fetchJson<DashboardPayload["borrowers"][number]>(`/borrowers/${borrowerId}`, {
+    method: "PUT",
     body: JSON.stringify(payload),
   });
 }

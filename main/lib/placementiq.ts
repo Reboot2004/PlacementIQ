@@ -34,6 +34,30 @@ export type DashboardBorrower = {
   top_drivers: Driver[];
 };
 
+export type BorrowerDetail = {
+  borrower_id: string;
+  borrower_name: string;
+  city: string;
+  institute: string;
+  course: "btech_cse" | "mba" | "core_engineering" | "commerce_arts";
+  institute_tier: 1 | 2 | 3;
+  nirf_rank: number;
+  nirf_score: number;
+  normalized_cgpa_10: number;
+  backlogs: number;
+  internships: number;
+  certifications: number;
+  job_portal_activity: number;
+  interview_count: number;
+  placement_cell_index: number;
+  sector_demand_index: number;
+  historical_course_placement_rate: number;
+  loan_amount_lakh: number;
+  moratorium_days_left: number;
+};
+
+export type BorrowerUpdateRequest = Omit<BorrowerDetail, "borrower_id">;
+
 export type DashboardSummary = {
   total_active_loans: number;
   high_risk_count: number;
@@ -77,6 +101,31 @@ export type ScoreResponse = {
   top_drivers: Driver[];
   recommended_action: string;
   model_family: string;
+};
+
+export type EnrollmentRequest = {
+  name: string;
+  city: string;
+  course: "btech_cse" | "mba" | "core_engineering" | "commerce_arts";
+  institute: string;
+  gpa: number;
+  backlogs: number;
+  internships: number;
+  interview_count: number;
+  certifications: number;
+  loan_amount_lakh: number;
+  moratorium_days_left: number;
+  institute_tier: 1 | 2 | 3;
+  nirf_rank: number;
+  nirf_score: number;
+  placement_cell_index: number;
+  historical_course_placement_rate: number;
+};
+
+export type EnrollmentResponse = {
+  borrower_id: string;
+  placement_risk_score: number;
+  message: string;
 };
 
 export const demoDashboardPayload: DashboardPayload = {
@@ -264,6 +313,25 @@ export const demoScoreRequest: ScoreRequest = {
   historical_course_placement_rate: 0.51,
   loan_amount_lakh: 18,
   moratorium_days_left: 75,
+};
+
+export const demoEnrollmentRequest: EnrollmentRequest = {
+  name: "Aarav Sharma",
+  city: "Hyderabad",
+  course: "btech_cse",
+  institute: "Indian Institute of Technology Hyderabad",
+  gpa: 7.1,
+  backlogs: 0,
+  internships: 1,
+  interview_count: 2,
+  certifications: 1,
+  loan_amount_lakh: 18,
+  moratorium_days_left: 75,
+  institute_tier: 2,
+  nirf_rank: 182,
+  nirf_score: 73.4,
+  placement_cell_index: 0.54,
+  historical_course_placement_rate: 0.51,
 };
 
 export function clamp(value: number, min: number, max: number) {
