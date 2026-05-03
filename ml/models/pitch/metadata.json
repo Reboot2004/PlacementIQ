@@ -1,5 +1,6 @@
 {
   "model_family": "XGBoost + LightGBM + SHAP",
+  "data_version": "v2",
   "stage1_features": [
     "nirf_rank",
     "nirf_score",
@@ -41,5 +42,10 @@
     "placed_6m",
     "placed_12m"
   ],
-  "salary_target": "actual_salary_lpa"
+  "salary_target": "actual_salary_lpa",
+  "penalty_design": {
+    "cgpa": "Primary driver (~35% weight). Non-linear penalty below 6.5.",
+    "backlogs": "Second strongest driver (~20% weight). 3+ backlogs -> near-zero placement.",
+    "nirf": "Moderate driver (~15% weight). Helps but cannot save bad academics."
+  }
 }

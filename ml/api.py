@@ -206,19 +206,49 @@ app = FastAPI(
 
 
 def load_artifacts():
-    stage1 = {target: joblib.load(MODEL_DIR / f"stage1_xgboost_{target}.pickle") for target in TARGETS}
-    stage2 = {target: joblib.load(MODEL_DIR / f"stage2_lightgbm_{target}.pickle") for target in TARGETS}
-    salary_model = joblib.load(MODEL_DIR / "salary_lightgbm.pickle")
-    
-    # Try loading SHAP explainers; skip if numba serialization fails
-    explainers = {}
+    # Load stage 1 / stage 2 models per target with clear errors
+    stage1 = {}
+    stage2 = {}
     for target in TARGETS:
         try:
-            explainers[target] = joblib.load(MODEL_DIR / f"shap_explainer_{target}.pickle")
-        except TypeError as e:
-            print(f"Warning: Could not load SHAP explainer for {target}: {e}")
+            stage1[target] = joblib.load(MODEL_DIR / f"stage1_xgboost_{target}.pickle")
+        except Exception as e:
+            raise RuntimeError(f"Failed to load stage1 model for {target}: {e}")
+        try:
+            stage2[target] = joblib.load(MODEL_DIR / f"stage2_lightgbm_{target}.pickle")
+        except Exception as e:
+            raise RuntimeError(f"Failed to load stage2 model for {target}: {e}")
+
+    # Salary model
+    try:
+        salary_model = joblib.load(MODEL_DIR / "salary_lightgbm.pickle")
+    except Exception as e:
+        raise RuntimeError(f"Failed to load salary model: {e}")
+
+    # Try loading SHAP explainers; many SHAP artifacts serialize with numba
+    explainers = {}
+    for target in TARGETS:
+        expl_path = MODEL_DIR / f"shap_explainer_{target}.pickle"
+        if expl_path.exists():
+            try:
+                explainers[target] = joblib.load(expl_path)
+            except Exception as e:
+                print(f"Warning: Could not load SHAP explainer for {target}: {e}")
+                explainers[target] = None
+        else:
             explainers[target] = None
-    
+
+    # Also try to load a salary SHAP explainer if present
+    salary_expl = MODEL_DIR / "shap_explainer_salary.pickle"
+    if salary_expl.exists():
+        try:
+            explainers["salary"] = joblib.load(salary_expl)
+        except Exception as e:
+            print(f"Warning: Could not load SHAP salary explainer: {e}")
+            explainers["salary"] = None
+    else:
+        explainers["salary"] = None
+
     return stage1, stage2, explainers, salary_model
 
 
