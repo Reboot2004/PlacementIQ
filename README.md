@@ -4,82 +4,77 @@ AI-powered placement risk modelling for education loan portfolios.
 
 PlacementIQ is a lender-facing prototype for NBFC education loan monitoring. It predicts whether a borrower is likely to be placed before or soon after moratorium exit, then gives risk teams a forward-looking Placement Risk Score, placement probabilities, expected salary band, explainability drivers, and recommended interventions.
 
-## What This Prototype Includes
+## Requirements
 
-- Lender dashboard for portfolio monitoring
-- Borrower-level Placement Risk Score
-- 3, 6, and 12 month placement probability models
-- Expected salary band prediction
-- Stage 1 XGBoost institute-course prior models
-- Stage 2 LightGBM student-level adjustment models
-- SHAP explainability artifacts
-- FastAPI `POST /score` endpoint
-- Synthetic/public-seed training dataset
-- Dockerfile for API deployment
-- Model card and implementation sweep
+- **Python**: 3.11.0 or above
+- **Node.js**: 24 or above
+- **NPM**: Latest version
 
 ## Project Structure
 
 ```text
-prototype/                 Static lender dashboard prototype
-ml/scripts/                Data generation, scraping, and model training scripts
-ml/models/pitch/           Trained XGBoost, LightGBM, and SHAP artifacts
-ml/data/                   Seed data, generated training data, and sample borrower JSON
+main/                      Next.js frontend dashboard
+ml/                        Python backend and ML models
 ml/api.py                  FastAPI scoring API
-docs/IMPLEMENTATION_SWEEP.md
+ml/scripts/                Data generation and training scripts
+ml/models/                 Trained model artifacts
+ml/data/                   Seed and synthetic data
 requirements.txt           Python dependencies
+package.json               Frontend dependencies (in main/)
 Dockerfile                 API container setup
 ```
 
-## Run The Dashboard
+## Setup & Running
 
-Open this file in a browser:
-
-```text
-prototype/index.html
-```
-
-The dashboard is static and can be hosted directly on GitHub Pages.
-
-## Run The Scoring API
+### 1. Backend (FastAPI)
 
 Create a virtual environment and install dependencies:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-On the development machine used for this project, the working venv is `.venv-win`:
+Run the scoring API:
 
 ```powershell
-.\.venv-win\Scripts\python.exe -m uvicorn ml.api:app --reload
+python -m uvicorn ml.api:app --reload
 ```
 
-Open:
+The API will be available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
-```text
-http://127.0.0.1:8000/docs
-```
+### 2. Frontend (Next.js)
 
-Smoke-test the trained model without starting the server:
+Navigate to the `main` folder and install dependencies:
 
 ```powershell
-.\.venv-win\Scripts\python.exe ml/scripts/score_with_pitch_model.py
+cd main
+npm install
 ```
+
+Run the development server:
+
+```powershell
+npm run dev
+```
+
+The dashboard will be available at [http://localhost:3000](http://localhost:3000).
+
+---
 
 ## Train The Models
 
 Generate the synthetic training dataset:
 
 ```powershell
-.\.venv-win\Scripts\python.exe ml/scripts/generate_synthetic_data.py --rows 25000
+python ml/scripts/generate_synthetic_data.py --rows 25000
 ```
 
-Train the pitch-aligned models:
+Train the models:
 
 ```powershell
-.\.venv-win\Scripts\python.exe ml/scripts/train_boosted_models.py
+python ml/scripts/train_boosted_models.py
 ```
 
 ## Current Metrics
@@ -91,30 +86,21 @@ Trained on 25,000 synthetic rows with a 20,000 / 5,000 train-test split:
 - 12-month placement, Stage 2 LightGBM: AUC `0.8967`, accuracy `0.9542`
 - Salary LightGBM: MAE `0.9625 LPA`, RMSE `1.2041 LPA`
 
-## Data Approach
+## Data Strategy
 
-The prototype uses public NIRF Engineering 2024 seed signals plus transparent synthetic borrower, employability, placement, salary, and loan labels. This is intentional because verified NBFC repayment and placement labels are private.
+PlacementIQ uses a hybrid data approach to ensure both realism and privacy:
 
-GPA handling is normalized:
+- **Institutional Data (Actual)**: The model is seeded with actual **NIRF Engineering 2024 rankings**. This provides a grounded baseline for institutional quality, placement history, and regional demand signals.
+- **Student-Level Factors (Synthetic)**: Individual student attributes—such as academic performance (CGPA), internship history, certifications, and interview activity—are synthetically generated. This approach allows for a robust, diverse dataset without compromising sensitive private borrower information.
 
-- Indian applicants may have a 10-point or 4-point grade scale.
-- Foreign applicants are generated with a 4-point grade scale.
-- The model uses only `normalized_cgpa_10`.
-- Applicant origin is excluded from model features and retained only for auditability.
+### Normalization & Bias Mitigation
+
+- **GPA Scaling**: Academic results are normalized to a standard 10-point scale, accommodating both Indian and international grading systems.
+- **Fairness by Design**: Sensitive demographic features (Gender, Caste, Religion, Origin) are excluded from the model features to prevent automated bias, used only for auditability and fairness monitoring.
 
 ## Responsible AI
 
-PlacementIQ is decision support, not an automated loan rejection tool.
-
-Excluded model features include:
-
-- Gender
-- Caste
-- Religion
-- Applicant origin / nationality
-- Direct demographic identifiers
-
-Every model score is backed by SHAP explainability artifacts so a lender can inspect the drivers behind the score.
+PlacementIQ is decision support, not an automated loan rejection tool. Every model score is backed by SHAP explainability artifacts so a lender can inspect the drivers behind the score.
 
 ## Docker
 
@@ -122,17 +108,3 @@ Every model score is backed by SHAP explainability artifacts so a lender can ins
 docker build -t placementiq-api .
 docker run -p 8000:8000 placementiq-api
 ```
-
-Then open:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-## Next Improvements
-
-- Connect the browser dashboard directly to FastAPI `POST /score`
-- Add batch portfolio scoring from uploaded CSV/JSON
-- Replace synthetic labels with verified NBFC placement and repayment outcomes
-- Add calibration, drift, and fairness monitoring views
-- Add audit logging for every score request and intervention recommendation
